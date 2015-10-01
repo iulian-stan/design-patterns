@@ -1,155 +1,104 @@
-﻿//Provide a way to access the elements of an aggregate object sequentially without exposing its underlying representation. 
-
-//The classes and objects participating in this pattern are:
-//    Iterator  (AbstractIterator)
-//        defines an interface for accessing and traversing elements.
-//    ConcreteIterator  (Iterator)
-//        implements the Iterator interface.
-//        keeps track of the current position in the traversal of the aggregate.
-//    Aggregate  (AbstractCollection)
-//        defines an interface for creating an Iterator object
-//    ConcreteAggregate  (Collection)
-//        implements the Iterator creation interface to return an instance of the proper ConcreteIterator
-
-using System;
+﻿using static System.Console;
 using System.Collections;
+using System.Collections.Generic;
+
 namespace Iterator
 {
     /// <summary>
-    /// MainApp startup class for Real-World
-    /// Iterator Design Pattern.
+    /// Iterator Design Pattern
     /// </summary>
-    class MainApp
+    public class Program
     {
-        /// <summary>
-        /// Entry point into console application.
-        /// </summary>
-        static void Main()
+        public static void Main()
         {
-            // Build a collection
-            Collection collection = new Collection();
-            collection[0] = new Item("Item 0");
-            collection[1] = new Item("Item 1");
-            collection[2] = new Item("Item 2");
-            collection[3] = new Item("Item 3");
-            collection[4] = new Item("Item 4");
-            collection[5] = new Item("Item 5");
-            collection[6] = new Item("Item 6");
-            collection[7] = new Item("Item 7");
-            collection[8] = new Item("Item 8");
-            // Create iterator
-            Iterator iterator = new Iterator(collection);
-            // Skip every other item
-            iterator.Step = 2;
-            Console.WriteLine("Iterating over collection:");
-            for (Item item = iterator.First();
-                !iterator.IsDone; item = iterator.Next())
+            // Create and item collection
+            ItemCollection<Item> items = [
+                    new("Item 0"),
+                new("Item 1"),
+                new("Item 2"),
+                new("Item 3"),
+                new("Item 4"),
+                new("Item 5"),
+                new("Item 6"),
+                new("Item 7"),
+                new("Item 8")
+                  ];
+
+            WriteLine("Iterate front to back");
+            foreach (var item in items)
             {
-                Console.WriteLine(item.Name);
+                WriteLine(item.Name);
             }
+
+            WriteLine("\nIterate back to front");
+            foreach (var item in items.BackToFront)
+            {
+                WriteLine(item.Name);
+            }
+            WriteLine();
+
+            // Iterate given range and step over even ones
+            WriteLine("\nIterate range (1-7) in steps of 2");
+            foreach (var item in items.FromToStep(1, 7, 2))
+            {
+                WriteLine(item.Name);
+            }
+            WriteLine();
+
             // Wait for user
-            Console.ReadKey();
+            ReadKey();
         }
     }
-    /// <summary>
-    /// A collection item
-    /// </summary>
-    class Item
-    {
-        private string _name;
-        // Constructor
-        public Item(string name)
-        {
-            this._name = name;
-        }
-        // Gets name
-        public string Name
-        {
-            get { return _name; }
-        }
-    }
-    /// <summary>
-    /// The 'Aggregate' interface
-    /// </summary>
-    interface IAbstractCollection
-    {
-        Iterator CreateIterator();
-    }
+
     /// <summary>
     /// The 'ConcreteAggregate' class
     /// </summary>
-    class Collection : IAbstractCollection
+    /// <typeparam name="T">Collection item type</typeparam>
+    public class ItemCollection<T> : IEnumerable<T>
     {
-        private ArrayList _items = new ArrayList();
-        public Iterator CreateIterator()
+        private readonly List<T> items = [];
+
+        public void Add(T t) => items.Add(t);
+
+        // The 'ConcreteIterator'
+        public IEnumerator<T> GetEnumerator()
         {
-            return new Iterator(this);
+            for (int i = 0; i < Count; i++)
+            {
+                yield return items[i];
+            }
         }
-        // Gets item count
-        public int Count
+
+        public IEnumerable<T> FrontToBack { get => this; }
+
+        public IEnumerable<T> BackToFront
         {
-            get { return _items.Count; }
+            get
+            {
+                for (int i = Count - 1; i >= 0; i--)
+                {
+                    yield return items[i];
+                }
+            }
         }
-        // Indexer
-        public object this[int index]
+
+        public IEnumerable<T> FromToStep(int from, int to, int step)
         {
-            get { return _items[index]; }
-            set { _items.Add(value); }
+            for (int i = from; i <= to; i += step)
+            {
+                yield return items[i];
+            }
         }
+
+        // Gets number of items
+        public int Count { get => items.Count; }
+
+        // System.Collections.IEnumerable member implementation
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     }
+
     /// <summary>
-    /// The 'Iterator' interface
+    /// The collection item
     /// </summary>
-    interface IAbstractIterator
-    {
-        Item First();
-        Item Next();
-        bool IsDone { get; }
-        Item CurrentItem { get; }
-    }
-    /// <summary>
-    /// The 'ConcreteIterator' class
-    /// </summary>
-    class Iterator : IAbstractIterator
-    {
-        private Collection _collection;
-        private int _current = 0;
-        private int _step = 1;
-        // Constructor
-        public Iterator(Collection collection)
-        {
-            this._collection = collection;
-        }
-        // Gets first item
-        public Item First()
-        {
-            _current = 0;
-            return _collection[_current] as Item;
-        }
-        // Gets next item
-        public Item Next()
-        {
-            _current += _step;
-            if (!IsDone)
-                return _collection[_current] as Item;
-            else
-                return null;
-        }
-        // Gets or sets stepsize
-        public int Step
-        {
-            get { return _step; }
-            set { _step = value; }
-        }
-        // Gets current iterator item
-        public Item CurrentItem
-        {
-            get { return _collection[_current] as Item; }
-        }
-        // Gets whether iteration is complete
-        public bool IsDone
-        {
-            get { return _current >= _collection.Count; }
-        }
-    }
+    internal record Item(string Name);
 }

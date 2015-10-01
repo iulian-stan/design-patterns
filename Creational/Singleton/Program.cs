@@ -1,91 +1,82 @@
-﻿//Ensure a class has only one instance and provide a global point of access to it. 
-
-//The classes and objects participating in this pattern are:
-//    Singleton   (LoadBalancer)
-//        defines an Instance operation that lets clients access its unique instance. Instance is a class operation.
-//        responsible for creating and maintaining its own unique instance.
-
+﻿using static System.Console;
 using System;
 using System.Collections.Generic;
+
 namespace Singleton
 {
-    /// <summary>
-    /// MainApp startup class for Real-World
-    /// Singleton Design Pattern.
-    /// </summary>
-    class MainApp
+    public class Program
     {
         /// <summary>
-        /// Entry point into console application.
+        /// Singleton Design Pattern
         /// </summary>
-        static void Main()
+        public static void Main()
         {
-            LoadBalancer b1 = LoadBalancer.GetLoadBalancer();
-            LoadBalancer b2 = LoadBalancer.GetLoadBalancer();
-            LoadBalancer b3 = LoadBalancer.GetLoadBalancer();
-            LoadBalancer b4 = LoadBalancer.GetLoadBalancer();
-            // Same instance?
+            var b1 = LoadBalancer.GetLoadBalancer();
+            var b2 = LoadBalancer.GetLoadBalancer();
+            var b3 = LoadBalancer.GetLoadBalancer();
+            var b4 = LoadBalancer.GetLoadBalancer();
+
+            // Confirm these are the same instance
             if (b1 == b2 && b2 == b3 && b3 == b4)
             {
-                Console.WriteLine("Same instance\n");
+                WriteLine("Same instance\n");
             }
-            // Load balance 15 server requests
-            LoadBalancer balancer = LoadBalancer.GetLoadBalancer();
+
+            var balancer = LoadBalancer.GetLoadBalancer();
+
+            // Load balance 15 requests for a server
             for (int i = 0; i < 15; i++)
             {
-                string server = balancer.Server;
-                Console.WriteLine("Dispatch Request to: " + server);
+                var server = balancer.NextServer.Name;
+                WriteLine("Dispatch request to: " + server);
             }
+
             // Wait for user
-            Console.ReadKey();
+            ReadKey();
         }
     }
+
     /// <summary>
     /// The 'Singleton' class
     /// </summary>
-    class LoadBalancer
+    public sealed class LoadBalancer
     {
-        private static LoadBalancer _instance;
-        private List<string> _servers = new List<string>();
-        private Random _random = new Random();
-        // Lock synchronization object
-        private static object syncLock = new object();
-        // Constructor (protected)
-        protected LoadBalancer()
+        // Static members are 'eagerly initialized', that is, 
+        // immediately when class is loaded for the first time.
+        // .NET guarantees thread safety for static initialization
+        private static readonly LoadBalancer instance = new();
+
+        private readonly List<Server> servers;
+        private readonly Random random = new();
+
+        // Note: constructor is 'private'
+        private LoadBalancer()
         {
-            // List of available servers
-            _servers.Add("ServerI");
-            _servers.Add("ServerII");
-            _servers.Add("ServerIII");
-            _servers.Add("ServerIV");
-            _servers.Add("ServerV");
+            // Load list of available servers
+
+            servers = [
+                        new(Name: "ServerI", Ip: "120.14.220.18"),
+                        new(Name: "ServerII", Ip: "120.14.220.19" ),
+                        new(Name: "ServerIII", Ip: "120.14.220.20" ),
+                        new(Name: "ServerIV", Ip: "120.14.220.21" ),
+                        new(Name: "ServerV", Ip: "120.14.220.22" )
+                      ];
         }
+
         public static LoadBalancer GetLoadBalancer()
         {
-            // Support multithreaded applications through
-            // 'Double checked locking' pattern which (once
-            // the instance exists) avoids locking each
-            // time the method is invoked
-            if (_instance == null)
-            {
-                lock (syncLock)
-                {
-                    if (_instance == null)
-                    {
-                        _instance = new LoadBalancer();
-                    }
-                }
-            }
-            return _instance;
+            return instance;
         }
-        // Simple, but effective random load balancer
-        public string Server
+
+        // Simple, but effective load balancer
+        public Server NextServer
         {
-            get
-            {
-                int r = _random.Next(_servers.Count);
-                return _servers[r].ToString();
-            }
+            get => servers[random.Next(servers.Count)];
         }
     }
+
+    /// <summary>
+    /// Represents a server machine
+    /// </summary>
+    public record Server(string Name, string Ip);
 }

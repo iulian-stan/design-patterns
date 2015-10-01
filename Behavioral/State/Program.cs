@@ -1,30 +1,16 @@
-﻿//Allow an object to alter its behavior when its internal state changes. The object will appear to change its class.
+﻿using static System.Console;
 
-//The classes and objects participating in this pattern are:
-//    Context  (Account)
-//        defines the interface of interest to clients
-//        maintains an instance of a ConcreteState subclass that defines the current state.
-//    State  (State)
-//        defines an interface for encapsulating the behavior associated with a particular state of the Context.
-//    Concrete State  (RedState, SilverState, GoldState)
-//        each subclass implements a behavior associated with a state of Context
-
-using System;
 namespace State
 {
     /// <summary>
-    /// MainApp startup class for Real-World 
-    /// State Design Pattern.
+    /// State Design Pattern
     /// </summary>
-    class MainApp
+    public class Program
     {
-        /// <summary>
-        /// Entry point into console application.
-        /// </summary>
-        static void Main()
+        public static void Main()
         {
             // Open a new account
-            Account account = new Account("Jim Johnson");
+            var account = new Account("Jim Johnson");
 
             // Apply financial transactions
             account.Deposit(500.0);
@@ -35,56 +21,45 @@ namespace State
             account.Withdraw(1100.00);
 
             // Wait for user
-            Console.ReadKey();
+            ReadKey();
         }
     }
 
     /// <summary>
     /// The 'State' abstract class
     /// </summary>
-    abstract class State
+    public abstract class State
     {
-        protected Account account;
-        protected double balance;
-
         protected double interest;
         protected double lowerLimit;
         protected double upperLimit;
 
-        // Properties
-        public Account Account
-        {
-            get { return account; }
-            set { account = value; }
-        }
+        // Gets or sets the account
+        public Account Account { get; set; } = null!;
 
-        public double Balance
-        {
-            get { return balance; }
-            set { balance = value; }
-        }
+        // Gets or sets the balance
+        public double Balance { get; set; }
 
         public abstract void Deposit(double amount);
         public abstract void Withdraw(double amount);
         public abstract void PayInterest();
     }
 
-
     /// <summary>
     /// A 'ConcreteState' class
     /// <remarks>
-    /// Red indicates that account is overdrawn 
+    /// Red state indicates account is overdrawn 
     /// </remarks>
     /// </summary>
-    class RedState : State
+    public class RedState : State
     {
-        private double _serviceFee;
+        private double serviceFee;
 
         // Constructor
         public RedState(State state)
         {
-            this.balance = state.Balance;
-            this.account = state.Account;
+            Balance = state.Balance;
+            Account = state.Account;
             Initialize();
         }
 
@@ -94,19 +69,19 @@ namespace State
             interest = 0.0;
             lowerLimit = -100.0;
             upperLimit = 0.0;
-            _serviceFee = 15.00;
+            serviceFee = 15.00;
         }
 
         public override void Deposit(double amount)
         {
-            balance += amount;
+            Balance += amount;
             StateChangeCheck();
         }
 
         public override void Withdraw(double amount)
         {
-            amount = amount - _serviceFee;
-            Console.WriteLine("No funds available for withdrawal!");
+            amount -= serviceFee;
+            WriteLine("No funds available for withdrawal!");
         }
 
         public override void PayInterest()
@@ -116,9 +91,9 @@ namespace State
 
         private void StateChangeCheck()
         {
-            if (balance > upperLimit)
+            if (Balance > upperLimit)
             {
-                account.State = new SilverState(this);
+                Account.State = new SilverState(this);
             }
         }
     }
@@ -126,10 +101,10 @@ namespace State
     /// <summary>
     /// A 'ConcreteState' class
     /// <remarks>
-    /// Silver indicates a non-interest bearing state
+    /// Silver state is non-interest bearing state
     /// </remarks>
     /// </summary>
-    class SilverState : State
+    public class SilverState : State
     {
         // Overloaded constructors
 
@@ -140,8 +115,8 @@ namespace State
 
         public SilverState(double balance, Account account)
         {
-            this.balance = balance;
-            this.account = account;
+            Balance = balance;
+            Account = account;
             Initialize();
         }
 
@@ -155,31 +130,31 @@ namespace State
 
         public override void Deposit(double amount)
         {
-            balance += amount;
+            Balance += amount;
             StateChangeCheck();
         }
 
         public override void Withdraw(double amount)
         {
-            balance -= amount;
+            Balance -= amount;
             StateChangeCheck();
         }
 
         public override void PayInterest()
         {
-            balance += interest * balance;
+            Balance += interest * Balance;
             StateChangeCheck();
         }
 
         private void StateChangeCheck()
         {
-            if (balance < lowerLimit)
+            if (Balance < lowerLimit)
             {
-                account.State = new RedState(this);
+                Account.State = new RedState(this);
             }
-            else if (balance > upperLimit)
+            else if (Balance > upperLimit)
             {
-                account.State = new GoldState(this);
+                Account.State = new GoldState(this);
             }
         }
     }
@@ -187,10 +162,10 @@ namespace State
     /// <summary>
     /// A 'ConcreteState' class
     /// <remarks>
-    /// Gold indicates an interest bearing state
+    /// Gold incidates interest bearing state
     /// </remarks>
     /// </summary>
-    class GoldState : State
+    public class GoldState : State
     {
         // Overloaded constructors
         public GoldState(State state)
@@ -200,8 +175,8 @@ namespace State
 
         public GoldState(double balance, Account account)
         {
-            this.balance = balance;
-            this.account = account;
+            Balance = balance;
+            Account = account;
             Initialize();
         }
 
@@ -215,31 +190,31 @@ namespace State
 
         public override void Deposit(double amount)
         {
-            balance += amount;
+            Balance += amount;
             StateChangeCheck();
         }
 
         public override void Withdraw(double amount)
         {
-            balance -= amount;
+            Balance -= amount;
             StateChangeCheck();
         }
 
         public override void PayInterest()
         {
-            balance += interest * balance;
+            Balance += interest * Balance;
             StateChangeCheck();
         }
 
         private void StateChangeCheck()
         {
-            if (balance < 0.0)
+            if (Balance < 0.0)
             {
-                account.State = new RedState(this);
+                Account.State = new RedState(this);
             }
-            else if (balance < lowerLimit)
+            else if (Balance < lowerLimit)
             {
-                account.State = new SilverState(this);
+                Account.State = new SilverState(this);
             }
         }
     }
@@ -247,57 +222,52 @@ namespace State
     /// <summary>
     /// The 'Context' class
     /// </summary>
-    class Account
+    public class Account
     {
-        private State _state;
-        private string _owner;
+        private readonly string owner;
 
         // Constructor
         public Account(string owner)
         {
             // New accounts are 'Silver' by default
-            this._owner = owner;
-            this._state = new SilverState(0.0, this);
+            this.owner = owner;
+            this.State = new SilverState(0.0, this);
         }
 
-        // Properties
+        // Gets the balance
         public double Balance
         {
-            get { return _state.Balance; }
+            get { return State.Balance; }
         }
 
-        public State State
-        {
-            get { return _state; }
-            set { _state = value; }
-        }
+        // Gets or sets state
+        public State State { get; set; }
 
         public void Deposit(double amount)
         {
-            _state.Deposit(amount);
-            Console.WriteLine("Deposited {0:C} --- ", amount);
-            Console.WriteLine(" Balance = {0:C}", this.Balance);
-            Console.WriteLine(" Status = {0}",
-              this.State.GetType().Name);
-            Console.WriteLine("");
+            State.Deposit(amount);
+            WriteLine($"Owner: {owner}");
+            WriteLine("Deposited {0:C} --- ", amount);
+            WriteLine(" Balance = {0:C}", this.Balance);
+            WriteLine(" Status  = {0}", this.State.GetType().Name);
+            WriteLine("");
         }
 
         public void Withdraw(double amount)
         {
-            _state.Withdraw(amount);
-            Console.WriteLine("Withdrew {0:C} --- ", amount);
-            Console.WriteLine(" Balance = {0:C}", this.Balance);
-            Console.WriteLine(" Status = {0}\n",
-              this.State.GetType().Name);
+            State.Withdraw(amount);
+            WriteLine($"Owner: {owner}");
+            WriteLine("Withdrew {0:C} --- ", amount);
+            WriteLine(" Balance = {0:C}", this.Balance);
+            WriteLine(" Status  = {0}\n", this.State.GetType().Name);
         }
 
         public void PayInterest()
         {
-            _state.PayInterest();
-            Console.WriteLine("Interest Paid --- ");
-            Console.WriteLine(" Balance = {0:C}", this.Balance);
-            Console.WriteLine(" Status = {0}\n",
-              this.State.GetType().Name);
+            State.PayInterest();
+            WriteLine("Interest Paid --- ");
+            WriteLine(" Balance = {0:C}", this.Balance);
+            WriteLine(" Status  = {0}\n", this.State.GetType().Name);
         }
     }
 }

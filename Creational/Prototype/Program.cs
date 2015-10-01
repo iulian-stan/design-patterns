@@ -1,88 +1,115 @@
-﻿//Specify the kind of objects to create using a prototypical instance, and create new objects by copying this prototype. 
-
-//The classes and objects participating in this pattern are:
-//    Prototype  (ColorPrototype)
-//        declares an interface for cloning itself
-//    ConcretePrototype  (Color)
-//        implements an operation for cloning itself
-//    Client  (ColorManager)
-//        creates a new object by asking a prototype to clone itself
-
-using System;
+﻿using static System.Console;
+using System.Text.Json;
 using System.Collections.Generic;
+
 namespace Prototype
 {
     /// <summary>
-    /// MainApp startup class for Real-World
-    /// Prototype Design Pattern.
+    /// Prototype Design Pattern
     /// </summary>
-    class MainApp
+    public class Program
     {
-        /// <summary>
-        /// Entry point into console application.
-        /// </summary>
-        static void Main()
+        public static void Main()
         {
-            ColorManager colormanager = new ColorManager();
+            var manager = new ColorManager();
+
             // Initialize with standard colors
-            colormanager["red"] = new Color(255, 0, 0);
-            colormanager["green"] = new Color(0, 255, 0);
-            colormanager["blue"] = new Color(0, 0, 255);
+            manager[ColorType.Red] = new Color { Red = 255, Blue = 0, Green = 0 };
+            manager[ColorType.Green] = new Color { Red = 0, Blue = 255, Green = 0 };
+            manager[ColorType.Blue] = new Color { Red = 0, Blue = 0, Green = 255 };
+
             // User adds personalized colors
-            colormanager["angry"] = new Color(255, 54, 0);
-            colormanager["peace"] = new Color(128, 211, 128);
-            colormanager["flame"] = new Color(211, 34, 20);
-            // User clones selected colors
-            Color color1 = colormanager["red"].Clone() as Color;
-            Color color2 = colormanager["peace"].Clone() as Color;
-            Color color3 = colormanager["flame"].Clone() as Color;
+            manager[ColorType.Angry] = new Color { Red = 255, Blue = 54, Green = 0 };
+            manager[ColorType.Peace] = new Color { Red = 128, Blue = 211, Green = 128 };
+            manager[ColorType.Flame] = new Color { Red = 211, Blue = 34, Green = 20 };
+
+            // User uses selected colors
+            _ = manager[ColorType.Red].Clone();
+            _ = manager[ColorType.Peace].Clone();
+            _ = manager[ColorType.Flame].Clone(false); // Deep Copy
+
             // Wait for user
-            Console.ReadKey();
+            ReadKey();
         }
     }
     /// <summary>
-    /// The 'Prototype' abstract class
+    /// ICloneable is not supported in .NET Core
     /// </summary>
-    abstract class ColorPrototype
+    public interface ICloneableObject
     {
-        public abstract ColorPrototype Clone();
+        object Clone();
     }
+
     /// <summary>
     /// The 'ConcretePrototype' class
     /// </summary>
-    class Color : ColorPrototype
+    public class Color : ICloneableObject
     {
-        private int _red;
-        private int _green;
-        private int _blue;
-        // Constructor
-        public Color(int red, int green, int blue)
+        public byte Red { get; set; }
+        public byte Green { get; set; }
+        public byte Blue { get; set; }
+
+        // Returns a shallow or a deep copy
+        public object? Clone(bool shallow)
         {
-            this._red = red;
-            this._green = green;
-            this._blue = blue;
+            return shallow ? Clone() : DeepCopy();
         }
-        // Create a shallow copy
-        public override ColorPrototype Clone()
+
+        // Creates a shallow copy
+        public object Clone()
         {
-            Console.WriteLine(
-              "Cloning color RGB: {0,3},{1,3},{2,3}",
-              _red, _green, _blue);
-            return this.MemberwiseClone() as ColorPrototype;
+            WriteLine(
+                "Shallow copy of color RGB: {0,3},{1,3},{2,3}",
+                Red, Green, Blue);
+
+            return MemberwiseClone();
+        }
+
+        // Creates a deep copy
+        public object? DeepCopy()
+        {
+            // use serialized to create a deep copy
+            var serialized = JsonSerializer.Serialize(this);
+            var copy = JsonSerializer.Deserialize<Color>(serialized);
+
+            if (copy is not null)
+            {
+                WriteLine(
+                    "*Deep* copy of color RGB: {0,3},{1,3},{2,3}",
+                    (copy as Color).Red, (copy as Color).Green, (copy as Color).Blue
+                );
+            }
+
+            return copy;
         }
     }
+
     /// <summary>
-    /// Prototype manager
+    /// Type-safe prototype manager
     /// </summary>
-    class ColorManager
+    public record ColorManager
     {
-        private Dictionary<string, ColorPrototype> _colors =
-          new Dictionary<string, ColorPrototype>();
-        // Indexer
-        public ColorPrototype this[string key]
+        private readonly Dictionary<ColorType, Color> colors = [];
+
+        // Gets or sets color
+        public Color this[ColorType type]
         {
-            get { return _colors[key]; }
-            set { _colors.Add(key, value); }
+            get => colors[type];
+            set => colors.Add(type, value);
         }
+    }
+
+    /// <summary>
+    /// Color type enumerations
+    /// </summary>
+    public enum ColorType
+    {
+        Red,
+        Green,
+        Blue,
+
+        Angry,
+        Peace,
+        Flame
     }
 }

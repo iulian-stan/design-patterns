@@ -1,146 +1,146 @@
-﻿//Define an interface for creating an object, but let subclasses decide which class to instantiate. Factory Method lets a class defer instantiation to subclasses. 
-
-//The classes and objects participating in this pattern are:
-//    Product  (Page)
-//        defines the interface of objects the factory method creates
-//    ConcreteProduct  (SkillsPage, EducationPage, ExperiencePage)
-//        implements the Product interface
-//    Creator  (Document)
-//        declares the factory method, which returns an object of type Product. Creator may also define a default implementation of the factory method that returns a default ConcreteProduct object.
-//        may call the factory method to create a Product object.
-//    ConcreteCreator  (Report, Resume)
-//        overrides the factory method to return an instance of a ConcreteProduct.
-
-using System;
+﻿using static System.Console;
 using System.Collections.Generic;
+
 namespace FactoryMethod
 {
     /// <summary>
-    /// MainApp startup class for Real-World
-    /// Factory Method Design Pattern.
+    /// Factory Design Pattern
     /// </summary>
-    class MainApp
+    public class Program
     {
-        /// <summary>
-        /// Entry point into console application.
-        /// </summary>
-        static void Main()
+        public static void Main()
         {
-            // Note: constructors call Factory Method
-            Document[] documents = new Document[2];
-            documents[0] = new Resume();
-            documents[1] = new Report();
+            // Document constructors call Factory Method
+            List<Document> documents = [new Resume(), new Report()];
+
             // Display document pages
-            foreach (Document document in documents)
+            foreach (var document in documents)
             {
-                Console.WriteLine("\n" + document.GetType().Name + "--");
-                foreach (Page page in document.Pages)
-                {
-                    Console.WriteLine(" " + page.GetType().Name);
-                }
+                document.CreatePages();  // Factory method
+
+                WriteLine($"{document} --");
+                foreach (var page in document.Pages) WriteLine($" {page}");
+                WriteLine();
             }
+
             // Wait for user
-            Console.ReadKey();
+            ReadKey();
         }
     }
+
     /// <summary>
     /// The 'Product' abstract class
     /// </summary>
-    abstract class Page
+    public abstract class Page
     {
+        // Override. Display class name
+        public override string ToString() => GetType().Name;
     }
+
     /// <summary>
     /// A 'ConcreteProduct' class
     /// </summary>
-    class SkillsPage : Page
+    public class SkillsPage : Page
     {
     }
+
     /// <summary>
     /// A 'ConcreteProduct' class
     /// </summary>
-    class EducationPage : Page
+    public class EducationPage : Page
     {
     }
+
     /// <summary>
     /// A 'ConcreteProduct' class
     /// </summary>
-    class ExperiencePage : Page
+    public class ExperiencePage : Page
     {
     }
+
     /// <summary>
     /// A 'ConcreteProduct' class
     /// </summary>
-    class IntroductionPage : Page
+    public class IntroductionPage : Page
     {
     }
+
+    /// <summary>
+    /// A 'ConcreteProduct' class
+    /// </summary>    
+    public class ResultsPage : Page
+    {
+    }
+
     /// <summary>
     /// A 'ConcreteProduct' class
     /// </summary>
-    class ResultsPage : Page
+    public class ConclusionPage : Page
     {
     }
+
     /// <summary>
     /// A 'ConcreteProduct' class
     /// </summary>
-    class ConclusionPage : Page
+    public class SummaryPage : Page
     {
     }
+
     /// <summary>
     /// A 'ConcreteProduct' class
     /// </summary>
-    class SummaryPage : Page
+    public class BibliographyPage : Page
     {
     }
-    /// <summary>
-    /// A 'ConcreteProduct' class
-    /// </summary>
-    class BibliographyPage : Page
-    {
-    }
+
     /// <summary>
     /// The 'Creator' abstract class
     /// </summary>
-    abstract class Document
+    public abstract class Document
     {
-        private List<Page> _pages = new List<Page>();
-        // Constructor calls abstract Factory method
-        public Document()
-        {
-            this.CreatePages();
-        }
-        public List<Page> Pages
-        {
-            get { return _pages; }
-        }
+        // Gets list of document pages
+        public List<Page> Pages { get; protected set; } = null!;
+
         // Factory Method
         public abstract void CreatePages();
+
+        // Override
+        public override string ToString() => GetType().Name;
     }
+
     /// <summary>
     /// A 'ConcreteCreator' class
     /// </summary>
-    class Resume : Document
+    public class Resume : Document
     {
         // Factory Method implementation
         public override void CreatePages()
         {
-            Pages.Add(new SkillsPage());
-            Pages.Add(new EducationPage());
-            Pages.Add(new ExperiencePage());
+            Pages =
+            [
+                new SkillsPage(),
+                new EducationPage(),
+                new ExperiencePage()
+            ];
         }
     }
+
     /// <summary>
     /// A 'ConcreteCreator' class
     /// </summary>
-    class Report : Document
+    public class Report : Document
     {
         // Factory Method implementation
         public override void CreatePages()
         {
-            Pages.Add(new IntroductionPage());
-            Pages.Add(new ResultsPage());
-            Pages.Add(new ConclusionPage());
-            Pages.Add(new SummaryPage());
-            Pages.Add(new BibliographyPage());
+            Pages =
+            [
+                new IntroductionPage(),
+                new ResultsPage(),
+                new ConclusionPage(),
+                new SummaryPage(),
+                new BibliographyPage()
+            ];
         }
     }
 }

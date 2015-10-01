@@ -1,46 +1,31 @@
-﻿//Provide a surrogate or placeholder for another object to control access to it. 
+﻿using static System.Console;
+using System.Threading;
 
-//The classes and objects participating in this pattern are:
-//    Proxy   (MathProxy)
-//        maintains a reference that lets the proxy access the real subject. Proxy may refer to a Subject if the RealSubject and Subject interfaces are the same.
-//        provides an interface identical to Subject's so that a proxy can be substituted for for the real subject.
-//        controls access to the real subject and may be responsible for creating and deleting it.
-//        other responsibilites depend on the kind of proxy:
-//            remote proxies are responsible for encoding a request and its arguments and for sending the encoded request to the real subject in a different address space.
-//            virtual proxies may cache additional information about the real subject so that they can postpone accessing it. For example, the ImageProxy from the Motivation caches the real images's extent.
-//            protection proxies check that the caller has the access permissions required to perform a request. 
-//    Subject   (IMath)
-//        defines the common interface for RealSubject and Proxy so that a Proxy can be used anywhere a RealSubject is expected. 
-//    RealSubject   (Math)
-//        defines the real object that the proxy represents. 
-
-using System;
 namespace Proxy
 {
     /// <summary>
-    /// MainApp startup class for Real-World
-    /// Proxy Design Pattern.
+    /// Proxy Design Pattern
     /// </summary>
-    class MainApp
+    public class Program
     {
-        /// <summary>
-        /// Entry point into console application.
-        /// </summary>
-        static void Main()
+        public static void Main()
         {
             // Create math proxy
-            MathProxy proxy = new MathProxy();
+            var proxy = new MathProxy();
+
             // Do the math
-            Console.WriteLine("4 + 2 = " + proxy.Add(4, 2));
-            Console.WriteLine("4 - 2 = " + proxy.Sub(4, 2));
-            Console.WriteLine("4 * 2 = " + proxy.Mul(4, 2));
-            Console.WriteLine("4 / 2 = " + proxy.Div(4, 2));
+            WriteLine($"4 + 2 = {proxy.Add(4, 2)}");
+            WriteLine($"4 - 2 = {proxy.Sub(4, 2)}");
+            WriteLine($"4 * 2 = {proxy.Mul(4, 2)}");
+            WriteLine($"4 / 2 = {proxy.Div(4, 2)}");
+
             // Wait for user
-            Console.ReadKey();
+            ReadKey();
         }
     }
+
     /// <summary>
-    /// The 'Subject interface
+    /// The 'Subject' interface
     /// </summary>
     public interface IMath
     {
@@ -49,37 +34,47 @@ namespace Proxy
         double Mul(double x, double y);
         double Div(double x, double y);
     }
+
     /// <summary>
     /// The 'RealSubject' class
     /// </summary>
-    class Math : IMath
+    public class Math : IMath
     {
-        public double Add(double x, double y) { return x + y; }
-        public double Sub(double x, double y) { return x - y; }
-        public double Mul(double x, double y) { return x * y; }
-        public double Div(double x, double y) { return x / y; }
+        public double Add(double x, double y) => x + y;
+        public double Sub(double x, double y) => x - y;
+        public double Mul(double x, double y) => x * y;
+        public double Div(double x, double y) => x / y;
     }
+
     /// <summary>
-    /// The 'Proxy Object' class
+    /// The remote 'Proxy Object' class
     /// </summary>
-    class MathProxy : IMath
+    public class MathProxy : IMath
     {
-        private Math _math = new Math();
+        private readonly Math math = new();
+
         public double Add(double x, double y)
         {
-            return _math.Add(x, y);
+            Thread.Sleep(800);
+            return math.Add(x, y);
         }
+
         public double Sub(double x, double y)
         {
-            return _math.Sub(x, y);
+            Thread.Sleep(800);
+            return math.Sub(x, y);
         }
+
         public double Mul(double x, double y)
         {
-            return _math.Mul(x, y);
+            Thread.Sleep(800);
+            return math.Mul(x, y);
         }
+
         public double Div(double x, double y)
         {
-            return _math.Div(x, y);
+            Thread.Sleep(800);
+            return math.Div(x, y);
         }
     }
 }

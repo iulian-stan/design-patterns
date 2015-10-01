@@ -1,145 +1,137 @@
-﻿//Provide an interface for creating families of related or dependent objects without specifying their concrete classes. 
+﻿using static System.Console;
 
-//The classes and objects participating in this pattern are:
-//    AbstractFactory  (ContinentFactory)
-//        declares an interface for operations that create abstract products 
-//    ConcreteFactory   (AfricaFactory, AmericaFactory)
-//        implements the operations to create concrete product objects 
-//    AbstractProduct   (Herbivore, Carnivore)
-//        declares an interface for a type of product object 
-//    Product  (Wildebeest, Lion, Bison, Wolf)
-//        defines a product object to be created by the corresponding concrete factory
-//        implements the AbstractProduct interface 
-//    Client  (AnimalWorld)
-//        uses interfaces declared by AbstractFactory and AbstractProduct classes 
- 
-using System;
 namespace AbstractFactory
 {
     /// <summary>
-    /// MainApp startup class for Real-World
     /// Abstract Factory Design Pattern.
     /// </summary>
-    class MainApp
+    public class Program
     {
-        /// <summary>
-        /// Entry point into console application.
-        /// </summary>
         public static void Main()
         {
             // Create and run the African animal world
-            ContinentFactory africa = new AfricaFactory();
-            AnimalWorld world = new AnimalWorld(africa);
-            world.RunFoodChain();
+            var africa = new AnimalWorld<Africa>();
+            africa.RunFoodChain();
+
             // Create and run the American animal world
-            ContinentFactory america = new AmericaFactory();
-            world = new AnimalWorld(america);
-            world.RunFoodChain();
+            var america = new AnimalWorld<America>();
+            america.RunFoodChain();
+
             // Wait for user input
-            Console.ReadKey();
+            ReadKey();
         }
     }
+
     /// <summary>
-    /// The 'AbstractFactory' abstract class
+    /// The 'AbstractFactory' interface. 
     /// </summary>
-    abstract class ContinentFactory
+    public interface IContinentFactory
     {
-        public abstract Herbivore CreateHerbivore();
-        public abstract Carnivore CreateCarnivore();
+        IHerbivore CreateHerbivore();
+        ICarnivore CreateCarnivore();
     }
+
     /// <summary>
-    /// The 'ConcreteFactory1' class
+    /// The 'ConcreteFactory1' class.
     /// </summary>
-    class AfricaFactory : ContinentFactory
+    public class Africa : IContinentFactory
     {
-        public override Herbivore CreateHerbivore()
-        {
-            return new Wildebeest();
-        }
-        public override Carnivore CreateCarnivore()
-        {
-            return new Lion();
-        }
+        public IHerbivore CreateHerbivore() => new Wildebeest();
+
+        public ICarnivore CreateCarnivore() => new Lion();
     }
+
     /// <summary>
-    /// The 'ConcreteFactory2' class
+    /// The 'ConcreteFactory2' class.
     /// </summary>
-    class AmericaFactory : ContinentFactory
+    public class America : IContinentFactory
     {
-        public override Herbivore CreateHerbivore()
-        {
-            return new Bison();
-        }
-        public override Carnivore CreateCarnivore()
-        {
-            return new Wolf();
-        }
+        public IHerbivore CreateHerbivore() => new Bison();
+
+        public ICarnivore CreateCarnivore() => new Wolf();
     }
+
     /// <summary>
-    /// The 'AbstractProductA' abstract class
+    /// The 'AbstractProductA' interface
     /// </summary>
-    abstract class Herbivore
+    public interface IHerbivore
     {
     }
+
     /// <summary>
-    /// The 'AbstractProductB' abstract class
+    /// The 'AbstractProductB' interface
     /// </summary>
-    abstract class Carnivore
+    public interface ICarnivore
     {
-        public abstract void Eat(Herbivore h);
+        void Eat(IHerbivore h);
     }
+
     /// <summary>
     /// The 'ProductA1' class
     /// </summary>
-    class Wildebeest : Herbivore
+    public class Wildebeest : IHerbivore
     {
     }
+
     /// <summary>
     /// The 'ProductB1' class
     /// </summary>
-    class Lion : Carnivore
+    public class Lion : ICarnivore
     {
-        public override void Eat(Herbivore h)
-        {
-            // Eat Wildebeest
-            Console.WriteLine(this.GetType().Name +
-              " eats " + h.GetType().Name);
-        }
+        // Eat Wildebeest
+        public void Eat(IHerbivore h) =>
+            WriteLine($"{GetType().Name} eats {h.GetType().Name}");
     }
+
     /// <summary>
     /// The 'ProductA2' class
     /// </summary>
-    class Bison : Herbivore
+    public class Bison : IHerbivore
     {
     }
+
     /// <summary>
     /// The 'ProductB2' class
     /// </summary>
-    class Wolf : Carnivore
+    public class Wolf : ICarnivore
     {
-        public override void Eat(Herbivore h)
-        {
-            // Eat Bison
-            Console.WriteLine(this.GetType().Name +
-              " eats " + h.GetType().Name);
-        }
+        // Eat Bison
+        public void Eat(IHerbivore h) =>
+            WriteLine($"{GetType().Name} eats {h.GetType().Name}");
     }
+
+    /// <summary>
+    /// The 'Client' interface
+    /// </summary>
+    public interface IAnimalWorld
+    {
+        void RunFoodChain();
+    }
+
     /// <summary>
     /// The 'Client' class
     /// </summary>
-    class AnimalWorld
+    public class AnimalWorld<T> : IAnimalWorld where T : IContinentFactory, new()
     {
-        private Herbivore _herbivore;
-        private Carnivore _carnivore;
-        // Constructor
-        public AnimalWorld(ContinentFactory factory)
+        private readonly IHerbivore herbivore;
+        private readonly ICarnivore carnivore;
+
+        public AnimalWorld()
         {
-            _carnivore = factory.CreateCarnivore();
-            _herbivore = factory.CreateHerbivore();
+            // Create new continent factory
+            var factory = new T();
+
+            // Factory creates carnivores and herbivores
+            carnivore = factory.CreateCarnivore();
+            herbivore = factory.CreateHerbivore();
         }
+
+        /// <summary>
+        /// Runs the foodchain: carnivores are eating herbivores.
+        /// </summary>
         public void RunFoodChain()
         {
-            _carnivore.Eat(_herbivore);
+            carnivore.Eat(herbivore);
         }
     }
 }

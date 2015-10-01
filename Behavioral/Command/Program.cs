@@ -1,170 +1,157 @@
-﻿//Encapsulate a request as an object, thereby letting you parameterize clients with different requests, queue or log requests, and support undoable operations. 
-
-//The classes and objects participating in this pattern are:
-//    Command  (Command)
-//        declares an interface for executing an operation
-//    ConcreteCommand  (CalculatorCommand)
-//        defines a binding between a Receiver object and an action
-//        implements Execute by invoking the corresponding operation(s) on Receiver
-//    Client  (CommandApp)
-//        creates a ConcreteCommand object and sets its receiver
-//    Invoker  (User)
-//        asks the command to carry out the request
-//    Receiver  (Calculator)
-//        knows how to perform the operations associated with carrying out the request.
-
+﻿using static System.Console;
 using System;
 using System.Collections.Generic;
+
 namespace Command
 {
     /// <summary>
-    /// MainApp startup class for Real-World
-    /// Command Design Pattern.
+    /// Command Design Pattern
     /// </summary>
-    class MainApp
+    public class Program
     {
-        /// <summary>
-        /// Entry point into console application.
-        /// </summary>
-        static void Main()
+        public static void Main()
         {
             // Create user and let her compute
-            User user = new User();
-            // User presses calculator buttons
+            var user = new User();
+
+            // Issue several compute commands
             user.Compute('+', 100);
             user.Compute('-', 50);
             user.Compute('*', 10);
             user.Compute('/', 2);
+
             // Undo 4 commands
             user.Undo(4);
+
             // Redo 3 commands
             user.Redo(3);
+
             // Wait for user
-            Console.ReadKey();
+            ReadKey();
         }
     }
+
     /// <summary>
-    /// The 'Command' abstract class
+    /// The 'Command' interface
     /// </summary>
-    abstract class Command
+    public interface ICommand
     {
-        public abstract void Execute();
-        public abstract void UnExecute();
+        void Execute();
+        void UnExecute();
     }
+
     /// <summary>
     /// The 'ConcreteCommand' class
     /// </summary>
-    class CalculatorCommand : Command
+    public class CalculatorCommand(Calculator calculator,
+                                    char @operator,
+                                    int operand) : ICommand
     {
-        private char _operator;
-        private int _operand;
-        private Calculator _calculator;
-        // Constructor
-        public CalculatorCommand(Calculator calculator,
-          char @operator, int operand)
+
+        // Sets operator
+        public char Operator { set => @operator = value; }
+
+        // Sets operand
+        public int Operand { set => operand = value; }
+
+        // Execute command
+        public void Execute()
         {
-            this._calculator = calculator;
-            this._operator = @operator;
-            this._operand = operand;
+            calculator.Operation(@operator, operand);
         }
-        // Gets operator
-        public char Operator
+
+        // Unexecute command
+        public void UnExecute()
         {
-            set { _operator = value; }
+            calculator.Operation(Undo(@operator), operand);
         }
-        // Get operand
-        public int Operand
+
+        // Return opposite operator for given operator
+        private static char Undo(char @operator)
         {
-            set { _operand = value; }
-        }
-        // Execute new command
-        public override void Execute()
-        {
-            _calculator.Operation(_operator, _operand);
-        }
-        // Unexecute last command
-        public override void UnExecute()
-        {
-            _calculator.Operation(Undo(_operator), _operand);
-        }
-        // Returns opposite operator for given operator
-        private char Undo(char @operator)
-        {
-            switch (@operator)
+            return @operator switch
             {
-                case '+': return '-';
-                case '-': return '+';
-                case '*': return '/';
-                case '/': return '*';
-                default: throw new
-                 ArgumentException("@operator");
-            }
+                '+' => '-',
+                '-' => '+',
+                '*' => '/',
+                '/' => '*',
+                _ => throw new ArgumentException("@operator"),
+            };
         }
     }
+
     /// <summary>
     /// The 'Receiver' class
     /// </summary>
-    class Calculator
+    public class Calculator
     {
-        private int _curr = 0;
+        private int current = 0;
+
+        // Perform operation for given operator and operand
         public void Operation(char @operator, int operand)
         {
             switch (@operator)
             {
-                case '+': _curr += operand; break;
-                case '-': _curr -= operand; break;
-                case '*': _curr *= operand; break;
-                case '/': _curr /= operand; break;
+                case '+': current += operand; break;
+                case '-': current -= operand; break;
+                case '*': current *= operand; break;
+                case '/': current /= operand; break;
             }
-            Console.WriteLine(
-              "Current value = {0,3} (following {1} {2})",
-              _curr, @operator, operand);
+            WriteLine(
+                "Current value = {0,3} (following {1} {2})",
+                current, @operator, operand);
         }
     }
+
     /// <summary>
     /// The 'Invoker' class
     /// </summary>
-    class User
+    public class User
     {
-        // Initializers
-        private Calculator _calculator = new Calculator();
-        private List<Command> _commands = new List<Command>();
-        private int _current = 0;
+        private readonly Calculator calculator = new();
+        private readonly List<ICommand> commands = [];
+        private int current = 0;
+
+        // Redo original commands
         public void Redo(int levels)
         {
-            Console.WriteLine("\n---- Redo {0} levels ", levels);
+            WriteLine($"\n---- Redo {levels} levels ");
+
             // Perform redo operations
             for (int i = 0; i < levels; i++)
             {
-                if (_current < _commands.Count - 1)
+                if (current < commands.Count - 1)
                 {
-                    Command command = _commands[_current++];
-                    command.Execute();
+                    commands[current++].Execute();
                 }
             }
         }
+
+        // Undo prior commands
         public void Undo(int levels)
         {
-            Console.WriteLine("\n---- Undo {0} levels ", levels);
+            WriteLine($"\n---- Undo {levels} levels ");
+
             // Perform undo operations
             for (int i = 0; i < levels; i++)
             {
-                if (_current > 0)
+                if (current > 0)
                 {
-                    Command command = _commands[--_current] as Command;
-                    command.UnExecute();
+                    commands[--current].UnExecute();
                 }
             }
         }
+
+        // Compute new value given operator and operand
         public void Compute(char @operator, int operand)
         {
             // Create command operation and execute it
-            Command command = new CalculatorCommand(
-              _calculator, @operator, operand);
+            var command = new CalculatorCommand(calculator, @operator, operand);
             command.Execute();
+
             // Add command to undo list
-            _commands.Add(command);
-            _current++;
+            commands.Add(command);
+            current++;
         }
     }
 }

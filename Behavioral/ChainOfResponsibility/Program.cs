@@ -1,147 +1,145 @@
-﻿//Avoid coupling the sender of a request to its receiver by giving more than one object a chance to handle the request. Chain the receiving objects and pass the request along the chain until an object handles it. 
-
-//The classes and objects participating in this pattern are:
-//    Handler   (Approver)
-//        defines an interface for handling the requests
-//        (optional) implements the successor link
-//    ConcreteHandler   (Director, VicePresident, President)
-//        handles requests it is responsible for
-//        can access its successor
-//        if the ConcreteHandler can handle the request, it does so; otherwise it forwards the request to its successor
-//    Client   (ChainApp)
-//        initiates the request to a ConcreteHandler object on the chain
-
+﻿using static System.Console;
 using System;
+
 namespace ChainOfResponsibility
 {
     /// <summary>
-    /// MainApp startup class for Real-World
-    /// Chain of Responsibility Design Pattern.
+    /// Chain of Responsibility Design Pattern
     /// </summary>
-    class MainApp
+    public class Program
     {
-        /// <summary>
-        /// Entry point into console application.
-        /// </summary>
-        static void Main()
+        public static void Main()
         {
             // Setup Chain of Responsibility
-            Approver larry = new Director();
-            Approver sam = new VicePresident();
-            Approver tammy = new President();
-            larry.SetSuccessor(sam);
-            sam.SetSuccessor(tammy);
+            var larry = new Director();
+            var sam = new VicePresident();
+            var tammy = new President();
+
+            larry.Successor = sam;
+            sam.Successor = tammy;
+
             // Generate and process purchase requests
-            Purchase p = new Purchase(2034, 350.00, "Assets");
-            larry.ProcessRequest(p);
-            p = new Purchase(2035, 32590.10, "Project X");
-            larry.ProcessRequest(p);
-            p = new Purchase(2036, 122100.00, "Project Y");
-            larry.ProcessRequest(p);
+            var purchase = new Purchase { Number = 2034, Amount = 350.00, Purpose = "Supplies" };
+            larry.ProcessRequest(purchase);
+
+            purchase = new Purchase { Number = 2035, Amount = 32590.10, Purpose = "Project X" };
+            larry.ProcessRequest(purchase);
+
+            purchase = new Purchase { Number = 2036, Amount = 122100.00, Purpose = "Project Y" };
+            larry.ProcessRequest(purchase);
+
             // Wait for user
-            Console.ReadKey();
+            ReadKey();
         }
     }
+    // Purchase event argument holds purchase info
+    public class PurchaseEventArgs : EventArgs
+    {
+        internal Purchase Purchase { get; init; } = null!;
+    }
+
     /// <summary>
     /// The 'Handler' abstract class
     /// </summary>
-    abstract class Approver
+    public abstract class Approver
     {
-        protected Approver successor;
-        public void SetSuccessor(Approver successor)
+        // Purchase event 
+        public EventHandler<PurchaseEventArgs> Purchase;
+
+        // Purchase event handler
+        public abstract void PurchaseHandler(object sender, PurchaseEventArgs e);
+
+        // Constructor
+        public Approver()
         {
-            this.successor = successor;
+            Purchase += PurchaseHandler!;
         }
-        public abstract void ProcessRequest(Purchase purchase);
+
+        public void ProcessRequest(Purchase purchase)
+        {
+            OnPurchase(new PurchaseEventArgs { Purchase = purchase });
+        }
+
+        // Invoke the Purchase event
+        public virtual void OnPurchase(PurchaseEventArgs e)
+        {
+            Purchase?.Invoke(this, e);
+        }
+
+        // Sets or gets the next approver
+        public Approver Successor { get; set; } = null!;
     }
+
     /// <summary>
     /// The 'ConcreteHandler' class
     /// </summary>
-    class Director : Approver
+    public class Director : Approver
     {
-        public override void ProcessRequest(Purchase purchase)
+        public override void PurchaseHandler(object sender, PurchaseEventArgs e)
         {
-            if (purchase.Amount < 10000.0)
+            if (e.Purchase.Amount < 10000.0)
             {
-                Console.WriteLine("{0} approved request# {1}",
-                  this.GetType().Name, purchase.Number);
-            }
-            else if (successor != null)
-            {
-                successor.ProcessRequest(purchase);
-            }
-        }
-    }
-    /// <summary>
-    /// The 'ConcreteHandler' class
-    /// </summary>
-    class VicePresident : Approver
-    {
-        public override void ProcessRequest(Purchase purchase)
-        {
-            if (purchase.Amount < 25000.0)
-            {
-                Console.WriteLine("{0} approved request# {1}",
-                  this.GetType().Name, purchase.Number);
-            }
-            else if (successor != null)
-            {
-                successor.ProcessRequest(purchase);
-            }
-        }
-    }
-    /// <summary>
-    /// The 'ConcreteHandler' class
-    /// </summary>
-    class President : Approver
-    {
-        public override void ProcessRequest(Purchase purchase)
-        {
-            if (purchase.Amount < 100000.0)
-            {
-                Console.WriteLine("{0} approved request# {1}",
-                  this.GetType().Name, purchase.Number);
+                WriteLine("{0} approved request# {1}",
+                    this.GetType().Name, e.Purchase.Number);
             }
             else
             {
-                Console.WriteLine(
-                  "Request# {0} requires an executive meeting!",
-                  purchase.Number);
+                Successor?.PurchaseHandler(this, e);
             }
         }
     }
+
     /// <summary>
-    /// Class holding request details
+    /// The 'ConcreteHandler' class
     /// </summary>
-    class Purchase
+    public class VicePresident : Approver
     {
-        private int _number;
-        private double _amount;
-        private string _purpose;
-        // Constructor
-        public Purchase(int number, double amount, string purpose)
+        public override void PurchaseHandler(object sender, PurchaseEventArgs e)
         {
-            this._number = number;
-            this._amount = amount;
-            this._purpose = purpose;
+            if (e.Purchase.Amount < 25000.0)
+            {
+                WriteLine("{0} approved request# {1}",
+                    this.GetType().Name, e.Purchase.Number);
+            }
+            else
+            {
+                Successor?.PurchaseHandler(this, e);
+            }
         }
-        // Gets or sets purchase number
-        public int Number
+    }
+
+    /// <summary>
+    /// The 'ConcreteHandler' clas
+    /// </summary>
+    public class President : Approver
+    {
+        public override void PurchaseHandler(object sender, PurchaseEventArgs e)
         {
-            get { return _number; }
-            set { _number = value; }
+            if (e.Purchase.Amount < 100000.0)
+            {
+                WriteLine("{0} approved request# {1}",
+                    sender.GetType().Name, e.Purchase.Number);
+            }
+            else if (Successor != null)
+            {
+                Successor.PurchaseHandler(this, e);
+            }
+            else
+            {
+                WriteLine(
+                    "Request# {0} requires an executive meeting!",
+                    e.Purchase.Number);
+            }
         }
-        // Gets or sets purchase amount
-        public double Amount
-        {
-            get { return _amount; }
-            set { _amount = value; }
-        }
-        // Gets or sets purchase purpose
-        public string Purpose
-        {
-            get { return _purpose; }
-            set { _purpose = value; }
-        }
+    }
+
+    /// <summary>
+    /// Record with request details
+    /// </summary>
+    public record Purchase
+    {
+        public required double Amount { get; init; }
+        public required string Purpose { get; init; }
+        public required int Number { get; init; }
     }
 }

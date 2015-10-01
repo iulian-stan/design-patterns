@@ -1,145 +1,123 @@
-﻿//Without violating encapsulation, capture and externalize an object's internal state so that the object can be restored to this state later.
+﻿using static System.Console;
+using System.Text.Json;
 
-//The classes and objects participating in this pattern are:
-//    Memento  (Memento)
-//        stores internal state of the Originator object. The memento may store as much or as little of the originator's internal state as necessary at its originator's discretion.
-//        protect against access by objects of other than the originator. Mementos have effectively two interfaces. Caretaker sees a narrow interface to the Memento -- it can only pass the memento to the other objects. Originator, in contrast, sees a wide interface, one that lets it access all the data necessary to restore itself to its previous state. Ideally, only the originator that produces the memento would be permitted to access the memento's internal state.
-//    Originator  (SalesProspect)
-//        creates a memento containing a snapshot of its current internal state.
-//        uses the memento to restore its internal state
-//    Caretaker  (Caretaker)
-//        is responsible for the memento's safekeeping
-//        never operates on or examines the contents of a memento.
-
-using System;
 namespace Memento
 {
     /// <summary>
-    /// MainApp startup class for Real-World
-    /// Memento Design Pattern.
+    /// Memento Design Pattern
     /// </summary>
-    class MainApp
+    public class Program
     {
-        /// <summary>
-        /// Entry point into console application.
-        /// </summary>
-        static void Main()
+        public static void Main()
         {
-            SalesProspect s = new SalesProspect();
-            s.Name = "Noel van Halen";
-            s.Phone = "(412) 256-0990";
-            s.Budget = 25000.0;
+            // Init sales prospect through object initialization
+            var s = new SalesProspect
+            {
+                Name = "Joel van Halen",
+                Phone = "(412) 256-0990",
+                Budget = 25000.0
+            };
+
             // Store internal state
-            ProspectMemory m = new ProspectMemory();
-            m.Memento = s.SaveMemento();
-            // Continue changing originator
+            var m = new ProspectMemory(s.SaveMemento());
+
+            // Change originator
             s.Name = "Leo Welch";
             s.Phone = "(310) 209-7111";
             s.Budget = 1000000.0;
+
             // Restore saved state
             s.RestoreMemento(m.Memento);
+
             // Wait for user
-            Console.ReadKey();
+            ReadKey();
         }
     }
+
     /// <summary>
     /// The 'Originator' class
     /// </summary>
-    class SalesProspect
+    public class SalesProspect
     {
-        private string _name;
-        private string _phone;
-        private double _budget;
+        private string name = null!;
+        private string phone = null!;
+        private double budget;
+
         // Gets or sets name
         public string Name
         {
-            get { return _name; }
+            get => name;
             set
             {
-                _name = value;
-                Console.WriteLine("Name:  " + _name);
+                name = value;
+                WriteLine("Name:   " + name);
             }
         }
+
         // Gets or sets phone
         public string Phone
         {
-            get { return _phone; }
+            get => phone;
             set
             {
-                _phone = value;
-                Console.WriteLine("Phone: " + _phone);
+                phone = value;
+                WriteLine("Phone:  " + phone);
             }
         }
+
         // Gets or sets budget
         public double Budget
         {
-            get { return _budget; }
+            get => budget;
             set
             {
-                _budget = value;
-                Console.WriteLine("Budget: " + _budget);
+                budget = value;
+                WriteLine("Budget: " + budget);
             }
         }
-        // Stores memento
+
+        // Stores (serializes) memento
         public Memento SaveMemento()
         {
-            Console.WriteLine("\nSaving state --\n");
-            return new Memento(_name, _phone, _budget);
+            WriteLine("\nSaving state --\n");
+
+            var memento = new Memento();
+            return memento.Serialize(this);
         }
-        // Restores memento
+
+        // Restores (deserializes) memento
         public void RestoreMemento(Memento memento)
         {
-            Console.WriteLine("\nRestoring state --\n");
-            this.Name = memento.Name;
-            this.Phone = memento.Phone;
-            this.Budget = memento.Budget;
+            WriteLine("\nRestoring state --\n");
+
+            var s = (SalesProspect)memento.Deserialize();
+            Name = s.Name;
+            Phone = s.Phone;
+            Budget = s.Budget;
         }
     }
+
     /// <summary>
     /// The 'Memento' class
     /// </summary>
-    class Memento
+    public class Memento
     {
-        private string _name;
-        private string _phone;
-        private double _budget;
-        // Constructor
-        public Memento(string name, string phone, double budget)
+        private string store = null!;
+
+        public Memento Serialize(object o)
         {
-            this._name = name;
-            this._phone = phone;
-            this._budget = budget;
+            store = JsonSerializer.Serialize(o);
+            return this;
         }
-        // Gets or sets name
-        public string Name
+
+        public object Deserialize()
         {
-            get { return _name; }
-            set { _name = value; }
-        }
-        // Gets or set phone
-        public string Phone
-        {
-            get { return _phone; }
-            set { _phone = value; }
-        }
-        // Gets or sets budget
-        public double Budget
-        {
-            get { return _budget; }
-            set { _budget = value; }
+            return JsonSerializer.Deserialize<SalesProspect>(store)!;
         }
     }
+
     /// <summary>
     /// The 'Caretaker' class
     /// </summary>
-    class ProspectMemory
-    {
-        private Memento _memento;
-        // Property
-        public Memento Memento
-        {
-            set { _memento = value; }
-            get { return _memento; }
-        }
-    }
+    public record ProspectMemory(Memento Memento);
 }

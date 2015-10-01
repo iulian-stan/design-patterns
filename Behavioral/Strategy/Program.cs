@@ -1,125 +1,165 @@
-﻿//Define a family of algorithms, encapsulate each one, and make them interchangeable. Strategy lets the algorithm vary independently from clients that use it.
-
-//The classes and objects participating in this pattern are:
-//    Strategy  (SortStrategy)
-//        declares an interface common to all supported algorithms. Context uses this interface to call the algorithm defined by a ConcreteStrategy
-//    ConcreteStrategy  (QuickSort, ShellSort, MergeSort)
-//        implements the algorithm using the Strategy interface
-//    Context  (SortedList)
-//        is configured with a ConcreteStrategy object
-//        maintains a reference to a Strategy object
-//        may define an interface that lets Strategy access its data.
-
+﻿using static System.Console;
 using System;
 using System.Collections.Generic;
+
 namespace Strategy
 {
     /// <summary>
-    /// MainApp startup class for Real-World 
-    /// Strategy Design Pattern.
+    /// Strategy Design Pattern
     /// </summary>
-    class MainApp
+    public class Program
     {
-        /// <summary>
-        /// Entry point into console application.
-        /// </summary>
-        static void Main()
+        public static void Main()
         {
             // Two contexts following different strategies
-            SortedList studentRecords = new SortedList();
+            SortedList students =
+                  [
+                    new (Name:"Samual", Ssn: "154-33-2009"),
+                new (Name:"Jimmy", Ssn: "487-43-1665" ),
+                new (Name:"Sandra", Ssn:  "655-00-2944" ),
+                new (Name:"Vivek", Ssn:  "133-98-8399" ),
+                new (Name:"Anna", Ssn: "760-94-9844" )
+                  ];
 
-            studentRecords.Add("Samual");
-            studentRecords.Add("Jimmy");
-            studentRecords.Add("Sandra");
-            studentRecords.Add("Vivek");
-            studentRecords.Add("Anna");
+            students.SortStrategy = new QuickSort();
+            students.SortStudents();
 
-            studentRecords.SetSortStrategy(new QuickSort());
-            studentRecords.Sort();
+            students.SortStrategy = new ShellSort();
+            students.SortStudents();
 
-            studentRecords.SetSortStrategy(new ShellSort());
-            studentRecords.Sort();
-
-            studentRecords.SetSortStrategy(new MergeSort());
-            studentRecords.Sort();
+            students.SortStrategy = new MergeSort();
+            students.SortStudents();
 
             // Wait for user
-            Console.ReadKey();
+            ReadKey();
         }
     }
 
     /// <summary>
-    /// The 'Strategy' abstract class
+    /// The 'Strategy' interface
     /// </summary>
-    abstract class SortStrategy
+    public interface ISortStrategy
     {
-        public abstract void Sort(List<string> list);
+        void Sort(List<Student> list);
     }
 
     /// <summary>
     /// A 'ConcreteStrategy' class
     /// </summary>
-    class QuickSort : SortStrategy
+    public class QuickSort : ISortStrategy
     {
-        public override void Sort(List<string> list)
+        public void Sort(List<Student> list)
         {
-            list.Sort(); // Default is Quicksort
-            Console.WriteLine("QuickSorted list ");
+            // Call overloaded Sort
+            Sort(list, 0, list.Count - 1);
+            WriteLine("QuickSorted list ");
+        }
+
+        // Recursively sort
+        private static void Sort(List<Student> list, int left, int right)
+        {
+            int lhold = left;
+            int rhold = right;
+
+            // Use a random pivot
+            var random = new Random();
+            int pivot = random.Next(left, right);
+            Swap(list, pivot, left);
+            pivot = left;
+            left++;
+
+            while (right >= left)
+            {
+                int compareleft = list[left].Name.CompareTo(list[pivot].Name);
+                int compareright = list[right].Name.CompareTo(list[pivot].Name);
+
+                if ((compareleft >= 0) && (compareright < 0))
+                {
+                    Swap(list, left, right);
+                }
+                else
+                {
+                    if (compareleft >= 0)
+                    {
+                        right--;
+                    }
+                    else
+                    {
+                        if (compareright < 0)
+                        {
+                            left++;
+                        }
+                        else
+                        {
+                            right--;
+                            left++;
+                        }
+                    }
+                }
+            }
+            Swap(list, pivot, right);
+            pivot = right;
+
+            if (pivot > lhold) Sort(list, lhold, pivot);
+            if (rhold > pivot + 1) Sort(list, pivot + 1, rhold);
+        }
+
+        // Swap helper function
+        private static void Swap(List<Student> list, int left, int right)
+        {
+            // Tuple based swap
+            (list[left], list[right]) = (list[right], list[left]);
         }
     }
 
     /// <summary>
     /// A 'ConcreteStrategy' class
     /// </summary>
-    class ShellSort : SortStrategy
+    public class ShellSort : ISortStrategy
     {
-        public override void Sort(List<string> list)
+        public void Sort(List<Student> list)
         {
-            //list.ShellSort(); not-implemented
-            Console.WriteLine("ShellSorted list ");
+            // ShellSort();  not-implemented
+            WriteLine("ShellSorted list ");
         }
     }
 
     /// <summary>
     /// A 'ConcreteStrategy' class
     /// </summary>
-    class MergeSort : SortStrategy
+    public class MergeSort : ISortStrategy
     {
-        public override void Sort(List<string> list)
+        public void Sort(List<Student> list)
         {
-            //list.MergeSort(); not-implemented
-            Console.WriteLine("MergeSorted list ");
+            // MergeSort(); not-implemented
+            WriteLine("MergeSorted list ");
         }
     }
 
     /// <summary>
     /// The 'Context' class
     /// </summary>
-    class SortedList
+    public class SortedList : List<Student>
     {
-        private List<string> _list = new List<string>();
-        private SortStrategy _sortstrategy;
+        // Sets sort strategy
+        public ISortStrategy SortStrategy { get; set; } = null!;
 
-        public void SetSortStrategy(SortStrategy sortstrategy)
+        // Perform sort
+        public void SortStudents()
         {
-            this._sortstrategy = sortstrategy;
-        }
+            SortStrategy.Sort(this);
 
-        public void Add(string name)
-        {
-            _list.Add(name);
-        }
-
-        public void Sort()
-        {
-            _sortstrategy.Sort(_list);
-
-            // Iterate over list and display results
-            foreach (string name in _list)
+            // Display sort results
+            foreach (var student in this)
             {
-                Console.WriteLine(" " + name);
+                WriteLine($" {student.Name}");
             }
-            Console.WriteLine();
+            WriteLine();
         }
     }
+
+    /// <summary>
+    /// Represents a student
+    /// </summary>
+    public record Student(string Name, string Ssn);
 }

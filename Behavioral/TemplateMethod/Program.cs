@@ -1,69 +1,60 @@
-﻿//Define the skeleton of an algorithm in an operation, deferring some steps to subclasses. Template Method lets subclasses redefine certain steps of an algorithm without changing the algorithm's structure.
+﻿using static System.Console;
+using System.Collections.Generic;
 
- //The classes and objects participating in this pattern are:
- //   AbstractClass  (DataObject)
- //       defines abstract primitive operations that concrete subclasses define to implement steps of an algorithm
- //       implements a template method defining the skeleton of an algorithm. The template method calls primitive operations as well as operations defined in AbstractClass or those of other objects.
- //   ConcreteClass  (CustomerDataObject)
- //       implements the primitive operations ot carry out subclass-specific steps of the algorithm
-
-using System;
-using System.Data;
-using System.Data.OleDb;
 namespace TemplateMethod
 {
     /// <summary>
-    /// MainApp startup class for Real-World 
-    /// Template Design Pattern.
+    /// Template Design Pattern
     /// </summary>
-    class MainApp
+    public class Program
     {
-        /// <summary>
-        /// Entry point into console application.
-        /// </summary>
-        static void Main()
+        public static void Main()
         {
-            DataAccessObject daoCategories = new Categories();
-            daoCategories.Run();
+            var categories = new CategoryAccessor();
+            categories.Run(5);
 
-            DataAccessObject daoProducts = new Products();
-            daoProducts.Run();
+            var products = new ProductAccessor();
+            products.Run(3);
 
             // Wait for user
-            Console.ReadKey();
+            ReadKey();
         }
+    }
+
+    public record Category
+    {
+        public string CategoryName { get; set; } = null!;
+    }
+
+    public record Product
+    {
+        public string ProductName { get; set; } = null!;
     }
 
     /// <summary>
     /// The 'AbstractClass' abstract class
     /// </summary>
-    abstract class DataAccessObject
+    public abstract class DataAccessor<T> where T : class, new()
     {
-        protected string connectionString;
-        protected DataSet dataSet;
+        protected List<T> Items { get; set; } = [];
 
         public virtual void Connect()
         {
-            // Make sure mdb is available to app
-            connectionString =
-              "provider=Microsoft.JET.OLEDB.4.0; " +
-              "data source=..\\..\\..\\db1.mdb";
+            Items.Clear();
         }
-
         public abstract void Select();
-        public abstract void Process();
-
+        public abstract void Process(int top);
         public virtual void Disconnect()
         {
-            connectionString = "";
+            Items.Clear();
         }
 
         // The 'Template Method' 
-        public void Run()
+        public void Run(int top)
         {
             Connect();
             Select();
-            Process();
+            Process(top);
             Disconnect();
         }
     }
@@ -71,55 +62,58 @@ namespace TemplateMethod
     /// <summary>
     /// A 'ConcreteClass' class
     /// </summary>
-    class Categories : DataAccessObject
+    public class CategoryAccessor : DataAccessor<Category>
     {
         public override void Select()
         {
-            string sql = "select CategoryName from Categories";
-            OleDbDataAdapter dataAdapter = new OleDbDataAdapter(
-              sql, connectionString);
-
-            dataSet = new DataSet();
-            dataAdapter.Fill(dataSet, "Categories");
+            Items.Add(new() { CategoryName = "Red" });
+            Items.Add(new() { CategoryName = "Green" });
+            Items.Add(new() { CategoryName = "Blue" });
+            Items.Add(new() { CategoryName = "Yellow" });
+            Items.Add(new() { CategoryName = "Purple" });
+            Items.Add(new() { CategoryName = "White" });
+            Items.Add(new() { CategoryName = "Black" });
         }
 
-        public override void Process()
+        public override void Process(int top)
         {
-            Console.WriteLine("Categories ---- ");
+            WriteLine("Categories ---- ");
 
-            DataTable dataTable = dataSet.Tables["Categories"];
-            foreach (DataRow row in dataTable.Rows)
+            for (int i = 0; i < top; i++)
             {
-                Console.WriteLine(row["CategoryName"]);
+                WriteLine(Items[i].CategoryName);
             }
-            Console.WriteLine();
+
+            WriteLine();
         }
     }
 
     /// <summary>
     /// A 'ConcreteClass' class
     /// </summary>
-    class Products : DataAccessObject
+    public class ProductAccessor : DataAccessor<Product>
     {
         public override void Select()
         {
-            string sql = "select ProductName from Products";
-            OleDbDataAdapter dataAdapter = new OleDbDataAdapter(
-              sql, connectionString);
-
-            dataSet = new DataSet();
-            dataAdapter.Fill(dataSet, "Products");
+            Items.Add(new Product { ProductName = "Car" });
+            Items.Add(new Product { ProductName = "Bike" });
+            Items.Add(new Product { ProductName = "Boat" });
+            Items.Add(new Product { ProductName = "Truck" });
+            Items.Add(new Product { ProductName = "Moped" });
+            Items.Add(new Product { ProductName = "Rollerskate" });
+            Items.Add(new Product { ProductName = "Stroller" });
         }
 
-        public override void Process()
+        public override void Process(int top)
         {
-            Console.WriteLine("Products ---- ");
-            DataTable dataTable = dataSet.Tables["Products"];
-            foreach (DataRow row in dataTable.Rows)
+            WriteLine("Products ---- ");
+
+            for (int i = 0; i < top; i++)
             {
-                Console.WriteLine(row["ProductName"]);
+                WriteLine(Items[i].ProductName);
             }
-            Console.WriteLine();
+
+            WriteLine();
         }
     }
 }

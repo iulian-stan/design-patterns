@@ -1,155 +1,128 @@
-﻿//Use sharing to support large numbers of fine-grained objects efficiently. 
+﻿using System.Collections.Generic;
+using static System.Console;
 
-//The classes and objects participating in this pattern are:
-//    Flyweight   (Character)
-//        declares an interface through which flyweights can receive and act on extrinsic state. 
-//    ConcreteFlyweight   (CharacterA, CharacterB, ..., CharacterZ)
-//        implements the Flyweight interface and adds storage for intrinsic state, if any. A ConcreteFlyweight object must be sharable. Any state it stores must be intrinsic, that is, it must be independent of the ConcreteFlyweight object's context. 
-//    UnsharedConcreteFlyweight   ( not used )
-//        not all Flyweight subclasses need to be shared. The Flyweight interface enables sharing, but it doesn't enforce it. It is common for UnsharedConcreteFlyweight objects to have ConcreteFlyweight objects as children at some level in the flyweight object structure (as the Row and Column classes have). 
-//    FlyweightFactory   (CharacterFactory)
-//        creates and manages flyweight objects
-//        ensures that flyweight are shared properly. When a client requests a flyweight, the FlyweightFactory objects assets an existing instance or creates one, if none exists. 
-//    Client   (FlyweightApp)
-//        maintains a reference to flyweight(s).
-//        computes or stores the extrinsic state of flyweight(s). 
-
-using System;
-using System.Collections.Generic;
 namespace Flyweight
 {
     /// <summary>
-    /// MainApp startup class for Real-World
-    /// Flyweight Design Pattern.
+    /// Flyweight Design Pattern
     /// </summary>
-    class MainApp
+    public class Program
     {
-        /// <summary>
-        /// Entry point into console application.
-        /// </summary>
-        static void Main()
+        public static void Main()
         {
-            // Build a document with text
-            string document = "AAZZBBZB";
-            char[] chars = document.ToCharArray();
-            CharacterFactory factory = new CharacterFactory();
+            // Build document with text
+            var document = "AAZZBBZB";
+
+            var factory = new CharacterFactory();
+
             // extrinsic state
             int pointSize = 10;
+
             // For each character use a flyweight object
-            foreach (char c in chars)
+            foreach (char c in document)
             {
-                pointSize++;
-                Character character = factory.GetCharacter(c);
-                character.Display(pointSize);
+                var character = factory.GetCharacter(c);
+                character.Display(++pointSize);
             }
+
             // Wait for user
-            Console.ReadKey();
+            ReadKey();
         }
     }
+
     /// <summary>
     /// The 'FlyweightFactory' class
     /// </summary>
-    class CharacterFactory
+    public class CharacterFactory
     {
-        private Dictionary<char, Character> _characters =
-          new Dictionary<char, Character>();
+        private readonly Dictionary<char, Character> characters = [];
+
         public Character GetCharacter(char key)
         {
             // Uses "lazy initialization"
-            Character character = null;
-            if (_characters.ContainsKey(key))
+            Character character;
+            if (characters.TryGetValue(key, out Character? value))
             {
-                character = _characters[key];
+                character = value;
             }
             else
             {
-                switch (key)
+                character = key switch
                 {
-                    case 'A': character = new CharacterA(); break;
-                    case 'B': character = new CharacterB(); break;
-                    //...
-                    case 'Z': character = new CharacterZ(); break;
-                }
-                _characters.Add(key, character);
+                    'A' => new CharacterA(),
+                    'B' => new CharacterB(),
+                    // ...
+                    'Z' => new CharacterZ(),
+                    _ => null!
+                };
+                characters.Add(key, character);
             }
             return character;
         }
     }
+
     /// <summary>
-    /// The 'Flyweight' abstract class
+    /// The 'Flyweight' class
     /// </summary>
-    abstract class Character
+    public class Character
     {
         protected char symbol;
         protected int width;
         protected int height;
         protected int ascent;
         protected int descent;
-        protected int pointSize;
-        public abstract void Display(int pointSize);
+
+        public void Display(int pointSize) =>
+           WriteLine($"{symbol} (pointsize {pointSize})");
     }
+
     /// <summary>
     /// A 'ConcreteFlyweight' class
     /// </summary>
-    class CharacterA : Character
+    public class CharacterA : Character
     {
         // Constructor
         public CharacterA()
         {
-            this.symbol = 'A';
-            this.height = 100;
-            this.width = 120;
-            this.ascent = 70;
-            this.descent = 0;
-        }
-        public override void Display(int pointSize)
-        {
-            this.pointSize = pointSize;
-            Console.WriteLine(this.symbol +
-              " (pointsize " + this.pointSize + ")");
+            symbol = 'A';
+            height = 100;
+            width = 120;
+            ascent = 70;
+            descent = 0;
         }
     }
+
     /// <summary>
     /// A 'ConcreteFlyweight' class
     /// </summary>
-    class CharacterB : Character
+    public class CharacterB : Character
     {
         // Constructor
         public CharacterB()
         {
-            this.symbol = 'B';
-            this.height = 100;
-            this.width = 140;
-            this.ascent = 72;
-            this.descent = 0;
-        }
-        public override void Display(int pointSize)
-        {
-            this.pointSize = pointSize;
-            Console.WriteLine(this.symbol +
-              " (pointsize " + this.pointSize + ")");
+            symbol = 'B';
+            height = 100;
+            width = 140;
+            ascent = 72;
+            descent = 0;
         }
     }
+
     // ... C, D, E, etc.
+
     /// <summary>
     /// A 'ConcreteFlyweight' class
     /// </summary>
-    class CharacterZ : Character
+    public class CharacterZ : Character
     {
         // Constructor
         public CharacterZ()
         {
-            this.symbol = 'Z';
-            this.height = 100;
-            this.width = 100;
-            this.ascent = 68;
-            this.descent = 0;
-        }
-        public override void Display(int pointSize)
-        {
-            this.pointSize = pointSize;
-            Console.WriteLine(this.symbol +
-              " (pointsize " + this.pointSize + ")");
+            symbol = 'Z';
+            height = 100;
+            width = 100;
+            ascent = 68;
+            descent = 0;
         }
     }
 }

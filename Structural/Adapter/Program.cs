@@ -1,140 +1,151 @@
-﻿//Convert the interface of a class into another interface clients expect. Adapter lets classes work together that couldn't otherwise because of incompatible interfaces. 
+﻿using static System.Console;
 
-//The classes and objects participating in this pattern are:
-//    Target   (ChemicalCompound)
-//        defines the domain-specific interface that Client uses.
-//    Adapter   (Compound)
-//        adapts the interface Adaptee to the Target interface.
-//    Adaptee   (ChemicalDatabank)
-//        defines an existing interface that needs adapting. 
-//    Client   (AdapterApp)
-//        collaborates with objects conforming to the Target interface. 
-
-using System;
-using System.Collections.Generic;
 namespace Adapter
 {
     /// <summary>
-    /// MainApp startup class for Real-World
-    /// Adapter Design Pattern.
+    /// Adapter Design Pattern
     /// </summary>
-    class MainApp
+    public class Program
     {
-        /// <summary>
-        /// Entry point into console application.
-        /// </summary>
-        static void Main()
+        public static void Main()
         {
-            // Non-adapted chemical compound
-            Compound unknown = new Compound("Unknown");
+            // Non-adapted chemical compound 
+            var unknown = new Compound();
             unknown.Display();
+
             // Adapted chemical compounds
-            Compound water = new RichCompound("Water");
+            var water = new RichCompound(Chemical.Water);
             water.Display();
-            Compound benzene = new RichCompound("Benzene");
+
+            var benzene = new RichCompound(Chemical.Benzene);
             benzene.Display();
-            Compound ethanol = new RichCompound("Ethanol");
+
+            var ethanol = new RichCompound(Chemical.Ethanol);
             ethanol.Display();
+
             // Wait for user
-            Console.ReadKey();
+            ReadKey();
         }
     }
+
     /// <summary>
     /// The 'Target' class
     /// </summary>
-    class Compound
+    public class Compound
     {
-        protected string _chemical;
-        protected float _boilingPoint;
-        protected float _meltingPoint;
-        protected double _molecularWeight;
-        protected string _molecularFormula;
-        // Constructor
-        public Compound(string chemical)
-        {
-            this._chemical = chemical;
-        }
+        public Chemical Chemical { get; protected set; }
+        public float BoilingPoint { get; protected set; }
+        public float MeltingPoint { get; protected set; }
+        public double MolecularWeight { get; protected set; }
+        public string? MolecularFormula { get; protected set; }
+
         public virtual void Display()
         {
-            Console.WriteLine("\nCompound: {0} ------ ", _chemical);
+            WriteLine("\nCompound: Unknown ------ ");
         }
     }
+
     /// <summary>
     /// The 'Adapter' class
     /// </summary>
-    class RichCompound : Compound
+    public class RichCompound : Compound
     {
-        private ChemicalDatabank _bank;
+        private readonly ChemicalDatabank bank = new();
+
         // Constructor
-        public RichCompound(string name)
-            : base(name)
+        public RichCompound(Chemical chemical)
         {
+            Chemical = chemical;
         }
+
         public override void Display()
         {
-            // The Adaptee
-            _bank = new ChemicalDatabank();
-            _boilingPoint = _bank.GetCriticalPoint(_chemical, "B");
-            _meltingPoint = _bank.GetCriticalPoint(_chemical, "M");
-            _molecularWeight = _bank.GetMolecularWeight(_chemical);
-            _molecularFormula = _bank.GetMolecularStructure(_chemical);
-            base.Display();
-            Console.WriteLine(" Formula: {0}", _molecularFormula);
-            Console.WriteLine(" Weight : {0}", _molecularWeight);
-            Console.WriteLine(" Melting Pt: {0}", _meltingPoint);
-            Console.WriteLine(" Boiling Pt: {0}", _boilingPoint);
+            // Adaptee request methods
+            BoilingPoint = bank.GetCriticalPoint(Chemical, State.Boiling);
+            MeltingPoint = bank.GetCriticalPoint(Chemical, State.Melting);
+            MolecularWeight = bank.GetMolecularWeight(Chemical);
+            MolecularFormula = bank.GetMolecularStructure(Chemical);
+
+            WriteLine($"\nCompound: {Chemical} ------ ");
+            WriteLine($" Formula: {MolecularFormula}");
+            WriteLine($" Weight : {MolecularWeight}");
+            WriteLine($" Melting Pt: {MeltingPoint}");
+            WriteLine($" Boiling Pt: {BoilingPoint}");
         }
     }
+
     /// <summary>
     /// The 'Adaptee' class
     /// </summary>
-    class ChemicalDatabank
+    public class ChemicalDatabank
     {
         // The databank 'legacy API'
-        public float GetCriticalPoint(string compound, string point)
+        public float GetCriticalPoint(Chemical compound, State point)
         {
             // Melting Point
-            if (point == "M")
+            if (point == State.Melting)
             {
-                switch (compound.ToLower())
+                return compound switch
                 {
-                    case "water": return 0.0f;
-                    case "benzene": return 5.5f;
-                    case "ethanol": return -114.1f;
-                    default: return 0f;
-                }
+                    Chemical.Water => 0.0f,
+                    Chemical.Benzene => 5.5f,
+                    Chemical.Ethanol => -114.1f,
+                    _ => 0f,
+                };
             }
             // Boiling Point
             else
             {
-                switch (compound.ToLower())
+                return compound switch
                 {
-                    case "water": return 100.0f;
-                    case "benzene": return 80.1f;
-                    case "ethanol": return 78.3f;
-                    default: return 0f;
-                }
+                    Chemical.Water => 100.0f,
+                    Chemical.Benzene => 80.1f,
+                    Chemical.Ethanol => 78.3f,
+                    _ => 0f,
+                };
             }
         }
-        public string GetMolecularStructure(string compound)
+
+        public string GetMolecularStructure(Chemical compound)
         {
-            switch (compound.ToLower())
+            return compound switch
             {
-                case "water": return "H20";
-                case "benzene": return "C6H6";
-                case "ethanol": return "C2H5OH";
-                default: return "";
-            }
+                Chemical.Water => "H20",
+                Chemical.Benzene => "C6H6",
+                Chemical.Ethanol => "C2H5OH",
+                _ => "",
+            };
         }
-        public double GetMolecularWeight(string compound)
+
+        public double GetMolecularWeight(Chemical compound)
         {
-            switch (compound.ToLower())
+            return compound switch
             {
-                case "water": return 18.015;
-                case "benzene": return 78.1134;
-                case "ethanol": return 46.0688;
-                default: return 0d;
-            }
+                Chemical.Water => 18.015d,
+                Chemical.Benzene => 78.1134d,
+                Chemical.Ethanol => 46.0688d,
+                _ => 0d
+            };
         }
+    }
+
+
+    /// <summary>
+    /// Chemical enumeration
+    /// </summary>
+    public enum Chemical
+    {
+        Water,
+        Benzene,
+        Ethanol
+    }
+
+    /// <summary>
+    /// State enumeration
+    /// </summary>
+    public enum State
+    {
+        Boiling,
+        Melting
     }
 }
