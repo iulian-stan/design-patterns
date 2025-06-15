@@ -19,7 +19,7 @@ using System.Collections.Generic;
 namespace Visitor
 {
     /// <summary>
-    /// MainApp startup class for Real-World 
+    /// MainApp startup class for Real-World
     /// Visitor Design Pattern.
     /// </summary>
     class MainApp

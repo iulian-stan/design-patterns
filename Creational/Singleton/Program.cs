@@ -1,4 +1,4 @@
-﻿//Ensure a class has only one instance and provide a global point of access to it. 
+﻿//Ensure a class has only one instance and provide a global point of access to it.
 
 //The classes and objects participating in this pattern are:
 //    Singleton   (LoadBalancer)

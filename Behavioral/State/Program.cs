@@ -13,7 +13,7 @@ using System;
 namespace State
 {
     /// <summary>
-    /// MainApp startup class for Real-World 
+    /// MainApp startup class for Real-World
     /// State Design Pattern.
     /// </summary>
     class MainApp
@@ -73,7 +73,7 @@ namespace State
     /// <summary>
     /// A 'ConcreteState' class
     /// <remarks>
-    /// Red indicates that account is overdrawn 
+    /// Red indicates that account is overdrawn
     /// </remarks>
     /// </summary>
     class RedState : State

@@ -1,4 +1,4 @@
-﻿//Encapsulate a request as an object, thereby letting you parameterize clients with different requests, queue or log requests, and support undoable operations. 
+﻿//Encapsulate a request as an object, thereby letting you parameterize clients with different requests, queue or log requests, and support undoable operations.
 
 //The classes and objects participating in this pattern are:
 //    Command  (Command)

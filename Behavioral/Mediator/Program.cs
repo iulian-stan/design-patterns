@@ -1,4 +1,4 @@
-﻿//Define an object that encapsulates how a set of objects interact. Mediator promotes loose coupling by keeping objects from referring to each other explicitly, and it lets you vary their interaction independently. 
+﻿//Define an object that encapsulates how a set of objects interact. Mediator promotes loose coupling by keeping objects from referring to each other explicitly, and it lets you vary their interaction independently.
 
 //The classes and objects participating in this pattern are:
 //    Mediator  (IChatroom)

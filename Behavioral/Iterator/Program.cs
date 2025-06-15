@@ -1,4 +1,4 @@
-﻿//Provide a way to access the elements of an aggregate object sequentially without exposing its underlying representation. 
+﻿//Provide a way to access the elements of an aggregate object sequentially without exposing its underlying representation.
 
 //The classes and objects participating in this pattern are:
 //    Iterator  (AbstractIterator)

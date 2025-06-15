@@ -15,7 +15,7 @@ using System.Collections.Generic;
 namespace Strategy
 {
     /// <summary>
-    /// MainApp startup class for Real-World 
+    /// MainApp startup class for Real-World
     /// Strategy Design Pattern.
     /// </summary>
     class MainApp

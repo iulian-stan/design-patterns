@@ -1,4 +1,4 @@
-﻿//Convert the interface of a class into another interface clients expect. Adapter lets classes work together that couldn't otherwise because of incompatible interfaces. 
+﻿//Convert the interface of a class into another interface clients expect. Adapter lets classes work together that couldn't otherwise because of incompatible interfaces.
 
 //The classes and objects participating in this pattern are:
 //    Target   (ChemicalCompound)
@@ -6,9 +6,9 @@
 //    Adapter   (Compound)
 //        adapts the interface Adaptee to the Target interface.
 //    Adaptee   (ChemicalDatabank)
-//        defines an existing interface that needs adapting. 
+//        defines an existing interface that needs adapting.
 //    Client   (AdapterApp)
-//        collaborates with objects conforming to the Target interface. 
+//        collaborates with objects conforming to the Target interface.
 
 using System;
 using System.Collections.Generic;

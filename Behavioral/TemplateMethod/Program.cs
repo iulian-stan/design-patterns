@@ -13,7 +13,7 @@ using System.Data.OleDb;
 namespace TemplateMethod
 {
     /// <summary>
-    /// MainApp startup class for Real-World 
+    /// MainApp startup class for Real-World
     /// Template Design Pattern.
     /// </summary>
     class MainApp
@@ -58,7 +58,7 @@ namespace TemplateMethod
             connectionString = "";
         }
 
-        // The 'Template Method' 
+        // The 'Template Method'
         public void Run()
         {
             Connect();

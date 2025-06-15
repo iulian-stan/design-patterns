@@ -1,4 +1,4 @@
-﻿//Specify the kind of objects to create using a prototypical instance, and create new objects by copying this prototype. 
+﻿//Specify the kind of objects to create using a prototypical instance, and create new objects by copying this prototype.
 
 //The classes and objects participating in this pattern are:
 //    Prototype  (ColorPrototype)

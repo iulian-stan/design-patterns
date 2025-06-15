@@ -1,18 +1,18 @@
-﻿//Provide an interface for creating families of related or dependent objects without specifying their concrete classes. 
+﻿//Provide an interface for creating families of related or dependent objects without specifying their concrete classes.
 
 //The classes and objects participating in this pattern are:
 //    AbstractFactory  (ContinentFactory)
-//        declares an interface for operations that create abstract products 
+//        declares an interface for operations that create abstract products
 //    ConcreteFactory   (AfricaFactory, AmericaFactory)
-//        implements the operations to create concrete product objects 
+//        implements the operations to create concrete product objects
 //    AbstractProduct   (Herbivore, Carnivore)
-//        declares an interface for a type of product object 
+//        declares an interface for a type of product object
 //    Product  (Wildebeest, Lion, Bison, Wolf)
 //        defines a product object to be created by the corresponding concrete factory
-//        implements the AbstractProduct interface 
+//        implements the AbstractProduct interface
 //    Client  (AnimalWorld)
-//        uses interfaces declared by AbstractFactory and AbstractProduct classes 
- 
+//        uses interfaces declared by AbstractFactory and AbstractProduct classes
+
 using System;
 namespace AbstractFactory
 {
